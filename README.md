@@ -42,9 +42,9 @@ From the project root, start the web and TCP servers:
 go run ./server
 ```
 
-Open the web chat at [http://localhost:8083](http://localhost:8083). Browse or search the room list, select a room, then click **Open Chat Window** and enter a nickname for that window. Click **Create Room** to add a room, then select it from the list. People in the same room can chat together.
+Open the web chat at [http://localhost:8284](http://localhost:8284). Browse or search the room list, select a room, then click **Open Chat Window** and enter a nickname for that window. Click **Create Room** to add a room, then select it from the list. People in the same room can chat together.
 
-The TCP backend listens on port `8082`; the web frontend listens on port `8083`.
+The TCP backend listens on port `8283`; the web frontend listens on port `8284`.
 
 
 ### Start a Command-line Client (optional)
@@ -94,8 +94,8 @@ Messages are structured as JSON with the following fields:
 ## 🔧 Technical Details
 
 - **Protocol**: TCP
-- **TCP backend port**: 8082
-- **Web frontend port**: 8083
+- **TCP backend port**: 8283
+- **Web frontend port**: 8284
 - **Message Format**: JSON
 - **Concurrency**: Goroutines for handling multiple connections
 - **Buffer Size**: 1024 bytes per message

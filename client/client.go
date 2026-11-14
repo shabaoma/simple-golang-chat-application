@@ -58,7 +58,7 @@ func Process(conn net.Conn) {
 }
 
 func main() {
-	conn, err := net.Dial("tcp", "127.0.0.1:8082")
+	conn, err := net.Dial("tcp", "127.0.0.1:8283")
 	if err != nil {
 		fmt.Println("Client dial error: ", err)
 	}

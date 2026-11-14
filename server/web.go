@@ -94,8 +94,8 @@ func startWebServer() {
 	mux.HandleFunc("/api/messages", handleMessages)
 	mux.HandleFunc("/api/rooms", handleRooms)
 	mux.HandleFunc("/api/events", handleEvents)
-	log.Println("Web chat available at http://localhost:8083")
-	if err := http.ListenAndServe(":8083", mux); err != nil {
+	log.Println("Web chat available at http://localhost:8284")
+	if err := http.ListenAndServe(":8284", mux); err != nil {
 		log.Println("Web server error:", err)
 	}
 }

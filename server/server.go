@@ -56,12 +56,12 @@ func main() {
 
 	go startWebServer()
 
-	server, err := net.Listen("tcp", ":8082")
+	server, err := net.Listen("tcp", ":8283")
 	if err != nil {
 		fmt.Println("Start server error: ", err)
 		return
 	}
-	fmt.Println("TCP server listening on :8082")
+	fmt.Println("TCP server listening on :8283")
 	defer server.Close()
 
 	for {
