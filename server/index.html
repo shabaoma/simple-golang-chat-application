@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f5f2">
-  <title>一起聊 · 在线聊天室</title>
+  <title>Gather · Group Chat</title>
   <style>
     :root { color-scheme: light; --ink:#20231f; --muted:#81877e; --line:#e9ebe5; --green:#386b54; --paper:#f5f6f2; --white:#fff; }
     * { box-sizing:border-box; }
@@ -90,66 +90,66 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="brand"><div class="brand-mark">聊</div><span>一起聊</span></div>
-    <div class="top-right"><span>轻松开始一场对话</span><span class="status"><i class="dot"></i>实时连接</span></div>
+    <div class="brand"><div class="brand-mark">G</div><span>Gather</span></div>
+    <div class="top-right"><span>Make room for a good conversation</span><span class="status"><i class="dot"></i>Live</span></div>
   </header>
   <main>
     <section class="room-controls" aria-labelledby="room-control-label">
-      <span class="room-control-label" id="room-control-label">选择要加入的房间</span>
+      <span class="room-control-label" id="room-control-label">Choose a room</span>
       <div class="room-control-row">
         <div class="room-picker" id="room-picker">
           <button class="room-toggle" id="room-toggle" type="button" aria-expanded="false" aria-controls="room-panel" aria-labelledby="room-control-label selected-room">
             <span class="room-symbol" aria-hidden="true">#</span>
-            <span class="room-toggle-name" id="selected-room">大厅</span>
+            <span class="room-toggle-name" id="selected-room">Lobby</span>
             <span class="room-chevron" aria-hidden="true"></span>
           </button>
           <div class="room-panel" id="room-panel" hidden>
-            <input class="room-search" id="room-search" type="search" placeholder="搜索房间…" aria-label="搜索房间" autocomplete="off">
-            <ul class="room-options" id="room-options" aria-label="房间列表"></ul>
+            <input class="room-search" id="room-search" type="search" placeholder="Search rooms…" aria-label="Search rooms" autocomplete="off">
+            <ul class="room-options" id="room-options" aria-label="Room list"></ul>
             <p class="room-list-message" id="room-list-message" role="status" hidden></p>
           </div>
         </div>
-        <button class="add-btn" id="add-window" type="button">打开聊天窗口</button>
-        <button class="secondary-btn" id="add-room" type="button">新建房间</button>
+        <button class="add-btn" id="add-window" type="button">Open Chat Window</button>
+        <button class="secondary-btn" id="add-room" type="button">Create Room</button>
       </div>
     </section>
-    <section class="window-grid" id="windows" aria-label="聊天窗口"></section>
-    <p class="footnote">同一房间里的消息会实时同步给所有在线成员。</p>
+    <section class="window-grid" id="windows" aria-label="Chat windows"></section>
+    <p class="footnote">Messages are shared with everyone in the same room.</p>
   </main>
   <div class="toast" id="toast"></div>
   <dialog class="room-dialog" id="room-dialog" aria-labelledby="room-dialog-title">
     <form id="room-form">
-      <h2 id="room-dialog-title">新建房间</h2>
-      <label for="room-name">房间名称</label>
-      <input id="room-name" placeholder="最多 40 个字符" autocomplete="off" aria-describedby="room-error" autofocus required>
+      <h2 id="room-dialog-title">Create a room</h2>
+      <label for="room-name">Room name</label>
+      <input id="room-name" placeholder="Up to 40 characters" autocomplete="off" aria-describedby="room-error" autofocus required>
       <p class="room-error" id="room-error" role="alert" hidden></p>
       <div class="room-dialog-actions">
-        <button class="secondary-btn" id="cancel-room" type="button">取消</button>
-        <button class="add-btn" id="create-room" type="submit">创建房间</button>
+        <button class="secondary-btn" id="cancel-room" type="button">Cancel</button>
+        <button class="add-btn" id="create-room" type="submit">Create Room</button>
       </div>
     </form>
   </dialog>
   <dialog class="room-dialog" id="window-dialog" aria-labelledby="window-dialog-title">
     <form id="window-form" novalidate>
-      <h2 id="window-dialog-title">打开聊天窗口</h2>
-      <p class="window-room">房间 · <strong id="window-room"></strong></p>
-      <label for="window-nickname">此窗口的昵称</label>
+      <h2 id="window-dialog-title">Open a chat window</h2>
+      <p class="window-room">Room · <strong id="window-room"></strong></p>
+      <label for="window-nickname">Nickname</label>
       <input id="window-nickname" autocomplete="off" aria-describedby="nickname-error" autofocus required>
       <p class="room-error" id="nickname-error" role="alert" hidden></p>
       <div class="room-dialog-actions">
-        <button class="secondary-btn" id="cancel-window" type="button">取消</button>
-        <button class="add-btn" type="submit">打开聊天窗口</button>
+        <button class="secondary-btn" id="cancel-window" type="button">Cancel</button>
+        <button class="add-btn" type="submit">Open Chat Window</button>
       </div>
     </form>
   </dialog>
   <template id="window-template">
     <article class="chat-window">
       <header class="window-head">
-        <div class="room-meta"><div class="room-icon">◉</div><div><div class="room-title">大厅</div><div class="room-subtitle">正在连接…</div></div></div>
-        <div class="window-tools"><input class="nickname-field" aria-label="此窗口的昵称"><button class="icon-btn close-btn" type="button" title="关闭窗口" aria-label="关闭窗口">×</button></div>
+        <div class="room-meta"><div class="room-icon">◉</div><div><div class="room-title">Lobby</div><div class="room-subtitle">Connecting…</div></div></div>
+        <div class="window-tools"><input class="nickname-field" aria-label="Nickname for this window"><button class="icon-btn close-btn" type="button" title="Close window" aria-label="Close window">×</button></div>
       </header>
-      <div class="messages"><div class="empty"><span class="empty-icon">☁</span>还没有消息，来打个招呼吧</div></div>
-      <form class="composer"><input class="text-field" maxlength="2000" placeholder="输入消息，按 Enter 发送…" aria-label="输入消息"><button class="send-btn" type="submit" title="发送">↑</button></form>
+      <div class="messages"><div class="empty"><span class="empty-icon">☁</span>No messages yet. Say hello!</div></div>
+      <form class="composer"><input class="text-field" maxlength="2000" placeholder="Write a message and press Enter…" aria-label="Write a message"><button class="send-btn" type="submit" title="Send">↑</button></form>
     </article>
   </template>
   <script>
@@ -180,7 +180,7 @@
     let toastTimer;
     const roomMessages = new Map();
     const seen = new Set();
-    const lobby = '大厅';
+    const lobby = 'Lobby';
     let selectedRoom = lobby;
     let rooms = [lobby];
     let roomListStatus = 'loading';
@@ -225,15 +225,15 @@
     function connect() {
       source = new EventSource('/api/events');
       source.onmessage = event => { try { addMessage(JSON.parse(event.data)); } catch {} };
-      source.onopen = () => document.querySelectorAll('.room-subtitle').forEach(el => el.textContent = '在线 · 实时同步');
-      source.onerror = () => document.querySelectorAll('.room-subtitle').forEach(el => el.textContent = '正在重新连接…');
+      source.onopen = () => document.querySelectorAll('.room-subtitle').forEach(el => el.textContent = 'Online · Live');
+      source.onerror = () => document.querySelectorAll('.room-subtitle').forEach(el => el.textContent = 'Reconnecting…');
     }
     async function loadRoom(room) {
       try {
         const response = await fetch('/api/messages?room=' + encodeURIComponent(room));
         const messages = await response.json();
         messages.forEach(addMessage);
-      } catch { toast('暂时无法加载聊天记录'); }
+      } catch { toast('Could not load chat history.'); }
     }
     function selectRoom(room) {
       selectedRoom = room;
@@ -268,7 +268,7 @@
           option.setAttribute('aria-current', 'true');
           const state = document.createElement('span');
           state.className = 'room-option-state';
-          state.textContent = '已选';
+          state.textContent = 'Selected';
           option.append(state);
         }
         option.addEventListener('click', () => {
@@ -281,9 +281,9 @@
       }
 
       let message = '';
-      if (roomListStatus === 'loading') message = '正在加载房间列表…';
-      else if (roomListStatus === 'error') message = '暂时无法更新房间列表';
-      else if (visibleRooms.length === 0) message = '没有找到匹配的房间';
+      if (roomListStatus === 'loading') message = 'Loading rooms…';
+      else if (roomListStatus === 'error') message = 'Could not update the room list.';
+      else if (visibleRooms.length === 0) message = 'No matching rooms found.';
       roomListMessage.textContent = message;
       roomListMessage.hidden = !message;
       if (focusedRoom && !roomPanel.hidden) focusTarget.focus();
@@ -317,8 +317,8 @@
     }
 
     function validateNickname(name) {
-      if (!name) return '请输入昵称';
-      if (Array.from(name).length > 32) return '昵称最多 32 个字符';
+      if (!name) return 'Enter a nickname.';
+      if (Array.from(name).length > 32) return 'Nicknames can be up to 32 characters.';
       return '';
     }
 
@@ -333,7 +333,7 @@
         const error = validateNickname(name);
         if (error) {
           nicknameField.value = card.dataset.nickname;
-          toast(error + '，已保留原昵称');
+          toast(error + ' Your previous nickname has been restored.');
           return;
         }
         card.dataset.nickname = name;
@@ -342,7 +342,7 @@
       card.querySelector('.room-title').textContent = room;
       card.querySelector('.room-title').title = room;
       if (source.readyState === EventSource.OPEN) {
-        card.querySelector('.room-subtitle').textContent = '在线 · 实时同步';
+        card.querySelector('.room-subtitle').textContent = 'Online · Live';
       }
       card.querySelector('.close-btn').addEventListener('click', () => card.remove());
       const field = card.querySelector('.text-field');
@@ -354,7 +354,7 @@
         try {
           const response = await fetch('/api/messages', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({from:card.dataset.nickname, room, text})});
           if (!response.ok) throw new Error();
-        } catch { field.value = text; toast('发送失败，请稍后重试'); }
+        } catch { field.value = text; toast('Message failed to send. Please try again.'); }
       });
       windowsEl.append(card);
       (roomMessages.get(room) || []).forEach(message => renderMessage(card, message));
@@ -446,7 +446,7 @@
       if (createRoomButton.disabled) return;
       const room = roomInput.value.trim();
       if (!room || Array.from(room).length > 40) {
-        showRoomError(room ? '房间名称最多 40 个字符' : '请输入房间名称');
+        showRoomError(room ? 'Room names can be up to 40 characters.' : 'Enter a room name.');
         roomInput.focus();
         return;
       }
@@ -454,7 +454,7 @@
       roomInput.readOnly = true;
       createRoomButton.disabled = true;
       cancelRoomButton.disabled = true;
-      createRoomButton.textContent = '正在创建…';
+      createRoomButton.textContent = 'Creating…';
       try {
         const response = await fetch('/api/rooms', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({room})});
         if (!response.ok) throw new Error();
@@ -465,13 +465,13 @@
         openWindowButton.focus();
         refreshRooms();
       } catch {
-        showRoomError('创建房间失败，请重试');
+        showRoomError('Could not create the room. Please try again.');
         roomInput.focus();
       } finally {
         roomInput.readOnly = false;
         createRoomButton.disabled = false;
         cancelRoomButton.disabled = false;
-        createRoomButton.textContent = '创建房间';
+        createRoomButton.textContent = 'Create Room';
       }
     });
     connect();

@@ -22,9 +22,9 @@ func (c Connection) Process() {
 	for {
 		buf := make([]byte, 1024)
 
-		// 如果客户端不发送请求，携程就会一直卡在这里
+		// Wait for the client to send data.
 		fmt.Printf("Wait for client: %v\n", c.Conn.RemoteAddr().String())
-		n, err := c.Conn.Read(buf) // n: 发送的字节数
+		n, err := c.Conn.Read(buf)
 		if err != nil {
 			if err == io.EOF {
 				fmt.Println("EOF")

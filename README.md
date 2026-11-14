@@ -2,7 +2,7 @@
 
 A lightweight, real-time chat application built with Go that demonstrates TCP networking, concurrent programming, and client-server architecture.
 
-项目现在同时提供网页群聊和原有的命令行 TCP 聊天。网页端支持在同一个页面打开多个房间窗口；同一房间中的在线用户可以实时群聊。
+The project includes a web-based group chat and the original command-line TCP chat. The web interface can open multiple room windows on one page, and everyone in a room can chat in real time.
 
 ## 🚀 Features
 
@@ -42,7 +42,7 @@ From the project root, start the web and TCP servers:
 go run ./server
 ```
 
-Open the web chat at [http://localhost:8083](http://localhost:8083). Browse or search the room list, select a room, then click **打开聊天窗口** and enter a nickname for that window. Use **新建房间** to add a room and select it in the list. People in the same room can chat together.
+Open the web chat at [http://localhost:8083](http://localhost:8083). Browse or search the room list, select a room, then click **Open Chat Window** and enter a nickname for that window. Click **Create Room** to add a room, then select it from the list. People in the same room can chat together.
 
 The TCP backend listens on port `8082`; the web frontend listens on port `8083`.
 

@@ -32,7 +32,7 @@ type webHub struct {
 
 var chatHub = &webHub{
 	clients: make(map[chan webMessage]struct{}),
-	rooms:   map[string]struct{}{"大厅": {}},
+	rooms:   map[string]struct{}{"Lobby": {}},
 }
 
 func (h *webHub) addRoom(room string) {
@@ -86,7 +86,7 @@ func startWebServer() {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		data, err := webFiles.ReadFile("index.html")
 		if err != nil {
-			http.Error(w, "网页文件暂不可用", http.StatusInternalServerError)
+			http.Error(w, "The web page is temporarily unavailable.", http.StatusInternalServerError)
 			return
 		}
 		_, _ = w.Write(data)
@@ -117,12 +117,12 @@ func handleRooms(w http.ResponseWriter, r *http.Request) {
 			Room string `json:"room"`
 		}
 		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1024)).Decode(&input); err != nil {
-			http.Error(w, "无效的房间名称", http.StatusBadRequest)
+			http.Error(w, "Invalid room name.", http.StatusBadRequest)
 			return
 		}
 		room := normalizeRoom(input.Room)
 		if strings.TrimSpace(input.Room) == "" {
-			http.Error(w, "房间名称不能为空", http.StatusBadRequest)
+			http.Error(w, "Room name cannot be empty.", http.StatusBadRequest)
 			return
 		}
 		chatHub.addRoom(room)
@@ -130,7 +130,7 @@ func handleRooms(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(room)
 	default:
 		w.Header().Set("Allow", "GET, POST")
-		http.Error(w, "仅支持 GET 和 POST", http.StatusMethodNotAllowed)
+		http.Error(w, "Only GET and POST are supported.", http.StatusMethodNotAllowed)
 	}
 }
 
@@ -157,17 +157,17 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 		}
 		decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 16*1024))
 		if err := decoder.Decode(&input); err != nil && err != io.EOF {
-			http.Error(w, "无效的消息数据", http.StatusBadRequest)
+			http.Error(w, "Invalid message data.", http.StatusBadRequest)
 			return
 		}
 		input.From = strings.TrimSpace(input.From)
 		input.Text = strings.TrimSpace(input.Text)
 		if input.From == "" || input.Text == "" {
-			http.Error(w, "昵称和消息不能为空", http.StatusBadRequest)
+			http.Error(w, "Name and message cannot be empty.", http.StatusBadRequest)
 			return
 		}
 		if len([]rune(input.From)) > 32 || len([]rune(input.Text)) > 2000 {
-			http.Error(w, "昵称最多 32 个字，消息最多 2000 个字", http.StatusBadRequest)
+			http.Error(w, "Name must be 32 characters or fewer and message must be 2,000 characters or fewer.", http.StatusBadRequest)
 			return
 		}
 		m := webMessage{From: input.From, Room: normalizeRoom(input.Room), Text: input.Text, CreatedAt: time.Now()}
@@ -176,14 +176,14 @@ func handleMessages(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(m)
 	default:
 		w.Header().Set("Allow", "GET, POST")
-		http.Error(w, "仅支持 GET 和 POST", http.StatusMethodNotAllowed)
+		http.Error(w, "Only GET and POST are supported.", http.StatusMethodNotAllowed)
 	}
 }
 
 func handleEvents(w http.ResponseWriter, r *http.Request) {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
-		http.Error(w, "当前服务器不支持实时推送", http.StatusInternalServerError)
+		http.Error(w, "Real-time updates are not supported by this server.", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "text/event-stream")
@@ -217,7 +217,7 @@ func handleEvents(w http.ResponseWriter, r *http.Request) {
 func normalizeRoom(room string) string {
 	room = strings.TrimSpace(room)
 	if room == "" {
-		return "大厅"
+		return "Lobby"
 	}
 	if len([]rune(room)) > 40 {
 		return string([]rune(room)[:40])
