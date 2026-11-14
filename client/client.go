@@ -40,8 +40,8 @@ func Process(conn net.Conn) {
 	for {
 		buf := make([]byte, 1024)
 
-		// 如果客户端不发送请求，携程就会一直卡在这里
-		n, err := conn.Read(buf) // n: 发送的字节数
+		// Wait for the server to send data.
+		n, err := conn.Read(buf)
 		if err != nil {
 			if err == io.EOF {
 				fmt.Println("EOF")
@@ -58,14 +58,13 @@ func Process(conn net.Conn) {
 }
 
 func main() {
-	conn, err := net.Dial("tcp", "0.0.0.0:8080")
+	conn, err := net.Dial("tcp", "127.0.0.1:8283")
 	if err != nil {
 		fmt.Println("Client dial error: ", err)
 	}
 	go Process(conn)
 
-	// 从键盘获取信息，保存于*Reader
-	// 数据是[]byte格式
+	// Read input from the keyboard.
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		line, err := reader.ReadString('\n') // args []byte not string

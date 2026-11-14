@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f5f2">
+  <title>Gather · Group Chat</title>
+  <style>
+    :root { color-scheme: light; --ink:#20231f; --muted:#81877e; --line:#e9ebe5; --green:#386b54; --paper:#f5f6f2; --white:#fff; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--ink); background:var(--paper); font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
+    .topbar { height:72px; padding:0 5vw; display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,.84); border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:12px; font-weight:700; font-size:17px; letter-spacing:-.03em; }
+    .brand-mark { width:35px;height:35px;border-radius:12px;background:var(--green);color:white;display:grid;place-items:center;font-size:17px; }
+    .top-right { display:flex;align-items:center;gap:18px;color:var(--muted);font-size:13px; }
+    .status { display:flex;align-items:center;gap:8px; }
+    .dot { width:8px;height:8px;border-radius:50%;background:#69aa76;box-shadow:0 0 0 4px #69aa761c; }
+    main { max-width:1250px;margin:0 auto;padding:20px 30px 60px; }
+    .room-controls { max-width:460px;margin-bottom:16px;padding:14px;background:var(--white);border:1px solid #e3e6de;border-radius:16px;box-shadow:0 4px 16px #29352206; }
+    .room-control-label { display:block;margin:0 0 8px 2px;color:#3e5044;font-size:12px;font-weight:650; }
+    .room-control-row { display:flex;align-items:center;gap:8px; }
+    .room-picker { position:relative;flex:1;min-width:0; }
+    .room-toggle { width:100%;height:44px;display:flex;align-items:center;gap:8px;padding:0 11px;border:1px solid #e3e6de;border-radius:10px;background:#f8f9f5;color:var(--ink);text-align:left; }
+    .room-toggle:hover,.room-toggle[aria-expanded="true"] { border-color:#9ab5a3;background:#f0f5ef; }
+    .room-symbol { display:grid;place-items:center;flex:0 0 24px;height:24px;border-radius:7px;background:#e8f0e9;color:#386b54;font-weight:700; }
+    .room-toggle-name,.room-option-name { flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600; }
+    .room-chevron { flex:none;width:7px;height:7px;border:solid #567363;border-width:0 1.5px 1.5px 0;transform:translateY(-2px) rotate(45deg); }
+    .room-toggle[aria-expanded="true"] .room-chevron { transform:translateY(2px) rotate(225deg); }
+    .room-panel { position:absolute;z-index:3;top:calc(100% + 8px);left:0;width:max(100%,260px);max-width:calc(100vw - 66px);padding:8px;border:1px solid #e3e6de;border-radius:12px;background:white;box-shadow:0 10px 28px #29352220; }
+    .room-search,.room-dialog input { width:100%;padding:9px 11px;border:1px solid #dfe6dc;border-radius:8px;background:#f8f9f5;color:var(--ink); }
+    .room-options { list-style:none;margin:7px 0 0;padding:0;max-height:216px;overflow-y:auto; }
+    .room-options li + li { margin-top:3px; }
+    .room-option { width:100%;display:flex;align-items:center;gap:8px;padding:7px 8px;border:0;border-radius:8px;background:white;color:var(--ink);text-align:left; }
+    .room-option:hover,.room-option[aria-current="true"] { background:#edf4ed; }
+    .room-option-state { color:#386b54;font-size:11px;white-space:nowrap; }
+    .room-list-message { margin:6px 4px;color:#58655d;font-size:12px; }
+    .room-controls :focus-visible,.room-dialog :focus-visible { outline:2px solid #47795c;outline-offset:2px; }
+    .nickname-field:focus,.composer input:focus { border-color:#83a68f;box-shadow:0 0 0 3px #386b5415; }
+    .nickname-field { height:31px;width:102px;border:1px solid var(--line);border-radius:8px;padding:0 8px;font-size:12px;outline:none;background:#fff; }
+    .add-btn,.secondary-btn { min-height:44px;padding:0 14px;border:1px solid transparent;border-radius:10px;font-size:13px;font-weight:650;white-space:nowrap; }
+    .add-btn { background:var(--green);color:white;box-shadow:0 3px 8px #386b5418; }
+    .add-btn:hover { background:#2d5c46; }
+    .add-btn:disabled { opacity:.65;cursor:wait; }
+    .secondary-btn { padding:0 11px;border-color:#e3e6de;background:white;color:#365846; }
+    .secondary-btn:hover { background:#f0f5ef; }
+    .room-dialog { width:min(420px,calc(100vw - 32px));padding:24px;border:1px solid #e3e6de;border-radius:16px;color:var(--ink);box-shadow:0 16px 48px #20231f30; }
+    .room-dialog::backdrop { background:#202c24aa; }
+    .room-dialog h2 { margin:0 0 16px;font-size:20px; }
+    .window-room { margin:-8px 0 16px;color:#58655d;font-size:13px;overflow-wrap:anywhere; }
+    .room-dialog label { display:block;margin-bottom:6px;font-size:13px;font-weight:650; }
+    .room-dialog-actions { display:flex;justify-content:flex-end;gap:8px;margin-top:18px; }
+    .room-error { margin:8px 0 0;color:#9e3535;font-size:13px; }
+    .window-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;align-items:start; }
+    .chat-window { overflow:hidden;min-height:440px;background:white;border:1px solid #e7e9e2;border-radius:16px;box-shadow:0 8px 24px #29352208;display:flex;flex-direction:column; }
+    .window-head { height:65px;padding:0 17px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line); }
+    .room-meta { display:flex;align-items:center;gap:11px;min-width:0; }
+    .room-icon { flex:none;width:35px;height:35px;border-radius:11px;background:#edf3ee;color:var(--green);display:grid;place-items:center;font-size:15px; }
+    .room-meta > div:last-child { min-width:0; }
+    .room-title { font-weight:650;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+    .room-subtitle { color:var(--muted);font-size:11px;margin-top:1px; }
+    .window-tools { display:flex;align-items:center;gap:8px; }
+    .icon-btn { width:31px;height:31px;border:0;border-radius:8px;background:transparent;color:#92978f;font-size:17px; }
+    .icon-btn:hover { background:#f4f5f1;color:#3b453b; }
+    .messages { flex:1;height:290px;overflow:auto;padding:20px 17px 12px;display:flex;flex-direction:column;gap:16px;scroll-behavior:smooth; }
+    .empty { margin:auto;text-align:center;color:#a1a69e;font-size:13px; }
+    .empty .empty-icon { display:block;font-size:26px;margin-bottom:8px;opacity:.65; }
+    .message { display:flex;gap:9px;align-items:flex-start;max-width:100%; }
+    .avatar { flex:0 0 29px;width:29px;height:29px;border-radius:10px;display:grid;place-items:center;background:#e9eee9;color:#486951;font-size:12px;font-weight:700; }
+    .message-content { min-width:0; }
+    .message-meta { display:flex;align-items:baseline;gap:8px;margin-bottom:3px; }
+    .message-author { font-weight:650;font-size:12px; }
+    .message-time { color:#a5aaa3;font-size:10px; }
+    .bubble { width:fit-content;max-width:min(440px,60vw);padding:8px 11px;background:#f3f5f1;border-radius:3px 12px 12px 12px;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere; }
+    .message.mine { flex-direction:row-reverse; }
+    .message.mine .message-content { display:flex;flex-direction:column;align-items:flex-end; }
+    .message.mine .message-meta { flex-direction:row-reverse; }
+    .message.mine .bubble { background:#e7f0e9;border-radius:12px 3px 12px 12px; }
+    .composer { display:flex;gap:9px;padding:13px 14px 14px;border-top:1px solid var(--line); }
+    .composer input { flex:1;min-width:0;height:40px;padding:0 12px;border:1px solid #e9ebe5;border-radius:10px;background:#fafbf9;outline:none;font-size:13px; }
+    .send-btn { height:40px;width:43px;border:0;border-radius:10px;background:var(--green);color:white;font-size:17px; }
+    .send-btn:hover { background:#2d5c46; }
+    .footnote { margin-top:20px;color:#9a9f97;font-size:12px; }
+    .toast { position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);padding:10px 15px;background:#252b26;color:white;border-radius:10px;font-size:13px;opacity:0;transition:.2s;pointer-events:none; }
+    .toast.show { opacity:1;transform:translate(-50%,0); }
+    @media(max-width:760px) { .topbar{padding:0 20px}.top-right .status{display:none} main{padding:16px 18px 38px}.window-grid{grid-template-columns:1fr}.chat-window{min-height:410px}.messages{height:260px}.nickname-field{width:82px}.window-head{padding:0 12px}.window-tools{gap:5px} }
+    @media(max-width:420px) { .room-control-row{display:grid;grid-template-columns:1fr auto}.room-picker{grid-column:1/-1} }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">G</div><span>Gather</span></div>
+    <div class="top-right"><span>Make room for a good conversation</span><span class="status"><i class="dot"></i>Live</span></div>
+  </header>
+  <main>
+    <section class="room-controls" aria-labelledby="room-control-label">
+      <span class="room-control-label" id="room-control-label">Choose a room</span>
+      <div class="room-control-row">
+        <div class="room-picker" id="room-picker">
+          <button class="room-toggle" id="room-toggle" type="button" aria-expanded="false" aria-controls="room-panel" aria-labelledby="room-control-label selected-room">
+            <span class="room-symbol" aria-hidden="true">#</span>
+            <span class="room-toggle-name" id="selected-room">Lobby</span>
+            <span class="room-chevron" aria-hidden="true"></span>
+          </button>
+          <div class="room-panel" id="room-panel" hidden>
+            <input class="room-search" id="room-search" type="search" placeholder="Search rooms…" aria-label="Search rooms" autocomplete="off">
+            <ul class="room-options" id="room-options" aria-label="Room list"></ul>
+            <p class="room-list-message" id="room-list-message" role="status" hidden></p>
+          </div>
+        </div>
+        <button class="add-btn" id="add-window" type="button">Open Chat Window</button>
+        <button class="secondary-btn" id="add-room" type="button">Create Room</button>
+      </div>
+    </section>
+    <section class="window-grid" id="windows" aria-label="Chat windows"></section>
+    <p class="footnote">Messages are shared with everyone in the same room.</p>
+  </main>
+  <div class="toast" id="toast"></div>
+  <dialog class="room-dialog" id="room-dialog" aria-labelledby="room-dialog-title">
+    <form id="room-form">
+      <h2 id="room-dialog-title">Create a room</h2>
+      <label for="room-name">Room name</label>
+      <input id="room-name" placeholder="Up to 40 characters" autocomplete="off" aria-describedby="room-error" autofocus required>
+      <p class="room-error" id="room-error" role="alert" hidden></p>
+      <div class="room-dialog-actions">
+        <button class="secondary-btn" id="cancel-room" type="button">Cancel</button>
+        <button class="add-btn" id="create-room" type="submit">Create Room</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog class="room-dialog" id="window-dialog" aria-labelledby="window-dialog-title">
+    <form id="window-form" novalidate>
+      <h2 id="window-dialog-title">Open a chat window</h2>
+      <p class="window-room">Room · <strong id="window-room"></strong></p>
+      <label for="window-nickname">Nickname</label>
+      <input id="window-nickname" autocomplete="off" aria-describedby="nickname-error" autofocus required>
+      <p class="room-error" id="nickname-error" role="alert" hidden></p>
+      <div class="room-dialog-actions">
+        <button class="secondary-btn" id="cancel-window" type="button">Cancel</button>
+        <button class="add-btn" type="submit">Open Chat Window</button>
+      </div>
+    </form>
+  </dialog>
+  <template id="window-template">
+    <article class="chat-window">
+      <header class="window-head">
+        <div class="room-meta"><div class="room-icon">◉</div><div><div class="room-title">Lobby</div><div class="room-subtitle">Connecting…</div></div></div>
+        <div class="window-tools"><input class="nickname-field" aria-label="Nickname for this window"><button class="icon-btn close-btn" type="button" title="Close window" aria-label="Close window">×</button></div>
+      </header>
+      <div class="messages"><div class="empty"><span class="empty-icon">☁</span>No messages yet. Say hello!</div></div>
+      <form class="composer"><input class="text-field" maxlength="2000" placeholder="Write a message and press Enter…" aria-label="Write a message"><button class="send-btn" type="submit" title="Send">↑</button></form>
+    </article>
+  </template>
+  <script>
+    const windowsEl = document.querySelector('#windows');
+    const template = document.querySelector('#window-template');
+    const roomPicker = document.querySelector('#room-picker');
+    const roomToggle = document.querySelector('#room-toggle');
+    const selectedRoomLabel = document.querySelector('#selected-room');
+    const roomPanel = document.querySelector('#room-panel');
+    const roomSearch = document.querySelector('#room-search');
+    const roomOptions = document.querySelector('#room-options');
+    const roomListMessage = document.querySelector('#room-list-message');
+    const openWindowButton = document.querySelector('#add-window');
+    const windowDialog = document.querySelector('#window-dialog');
+    const windowForm = document.querySelector('#window-form');
+    const windowRoom = document.querySelector('#window-room');
+    const nicknameInput = document.querySelector('#window-nickname');
+    const nicknameError = document.querySelector('#nickname-error');
+    const addRoomButton = document.querySelector('#add-room');
+    const roomDialog = document.querySelector('#room-dialog');
+    const roomForm = document.querySelector('#room-form');
+    const roomInput = document.querySelector('#room-name');
+    const roomError = document.querySelector('#room-error');
+    const createRoomButton = document.querySelector('#create-room');
+    const cancelRoomButton = document.querySelector('#cancel-room');
+    const toastEl = document.querySelector('#toast');
+    let source;
+    let toastTimer;
+    const roomMessages = new Map();
+    const seen = new Set();
+    const lobby = 'Lobby';
+    let selectedRoom = lobby;
+    let rooms = [lobby];
+    let roomListStatus = 'loading';
+    let roomListRequest = 0;
+    function toast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2400);
+    }
+    function timeLabel(value) {
+      return new Intl.DateTimeFormat('zh-CN', {hour:'2-digit', minute:'2-digit'}).format(new Date(value));
+    }
+    function renderMessage(card, message) {
+      const list = card.querySelector('.messages');
+      const empty = list.querySelector('.empty');
+      if (empty) empty.remove();
+      const row = document.createElement('div');
+      const nickname = card.dataset.nickname;
+      row.className = 'message' + (message.from === nickname ? ' mine' : '');
+      const avatar = document.createElement('div'); avatar.className = 'avatar'; avatar.textContent = (message.from || '?').slice(0,1).toUpperCase();
+      const content = document.createElement('div'); content.className = 'message-content';
+      const meta = document.createElement('div'); meta.className = 'message-meta';
+      const author = document.createElement('span'); author.className = 'message-author'; author.textContent = message.from;
+      const time = document.createElement('span'); time.className = 'message-time'; time.textContent = timeLabel(message.createdAt);
+      const bubble = document.createElement('div'); bubble.className = 'bubble'; bubble.textContent = message.text;
+      meta.append(author, time); content.append(meta, bubble); row.append(avatar, content); list.append(row);
+      list.scrollTop = list.scrollHeight;
+    }
+    function addMessage(message) {
+      const key = [message.room, message.from, message.createdAt, message.text].join('|');
+      if (seen.has(key)) return;
+      seen.add(key);
+      const messages = roomMessages.get(message.room) || [];
+      messages.push(message);
+      if (messages.length > 200) messages.shift();
+      roomMessages.set(message.room, messages);
+      document.querySelectorAll('.chat-window').forEach(card => {
+        if (card.dataset.room === message.room) renderMessage(card, message);
+      });
+    }
+    function connect() {
+      source = new EventSource('/api/events');
+      source.onmessage = event => { try { addMessage(JSON.parse(event.data)); } catch {} };
+      source.onopen = () => document.querySelectorAll('.room-subtitle').forEach(el => el.textContent = 'Online · Live');
+      source.onerror = () => document.querySelectorAll('.room-subtitle').forEach(el => el.textContent = 'Reconnecting…');
+    }
+    async function loadRoom(room) {
+      try {
+        const response = await fetch('/api/messages?room=' + encodeURIComponent(room));
+        const messages = await response.json();
+        messages.forEach(addMessage);
+      } catch { toast('Could not load chat history.'); }
+    }
+    function selectRoom(room) {
+      selectedRoom = room;
+      selectedRoomLabel.textContent = room;
+      roomToggle.title = room;
+    }
+
+    function renderRoomList() {
+      const focusedRoom = document.activeElement.dataset.roomOption;
+      const query = roomSearch.value.trim().toLowerCase();
+      const visibleRooms = rooms.filter(room => room.toLowerCase().includes(query));
+      roomOptions.replaceChildren();
+
+      let focusTarget = roomSearch;
+      for (const room of visibleRooms) {
+        const item = document.createElement('li');
+        const option = document.createElement('button');
+        option.type = 'button';
+        option.className = 'room-option';
+        option.dataset.roomOption = room;
+        option.title = room;
+
+        const symbol = document.createElement('span');
+        symbol.className = 'room-symbol';
+        symbol.setAttribute('aria-hidden', 'true');
+        symbol.textContent = '#';
+        const name = document.createElement('span');
+        name.className = 'room-option-name';
+        name.textContent = room;
+        option.append(symbol, name);
+        if (room === selectedRoom) {
+          option.setAttribute('aria-current', 'true');
+          const state = document.createElement('span');
+          state.className = 'room-option-state';
+          state.textContent = 'Selected';
+          option.append(state);
+        }
+        option.addEventListener('click', () => {
+          selectRoom(room);
+          closeRoomPicker(true);
+        });
+        item.append(option);
+        roomOptions.append(item);
+        if (room === focusedRoom) focusTarget = option;
+      }
+
+      let message = '';
+      if (roomListStatus === 'loading') message = 'Loading rooms…';
+      else if (roomListStatus === 'error') message = 'Could not update the room list.';
+      else if (visibleRooms.length === 0) message = 'No matching rooms found.';
+      roomListMessage.textContent = message;
+      roomListMessage.hidden = !message;
+      if (focusedRoom && !roomPanel.hidden) focusTarget.focus();
+    }
+
+    function closeRoomPicker(restoreFocus = false) {
+      roomPanel.hidden = true;
+      roomToggle.setAttribute('aria-expanded', 'false');
+      if (restoreFocus) roomToggle.focus();
+    }
+
+    async function refreshRooms() {
+      const request = ++roomListRequest;
+      try {
+        const response = await fetch('/api/rooms', {cache:'no-store'});
+        if (!response.ok) throw new Error();
+        const result = await response.json();
+        if (request !== roomListRequest) return;
+        const nextRooms = [lobby, ...result.filter(room => room !== lobby)];
+        const changed = roomListStatus !== 'ready' || nextRooms.length !== rooms.length ||
+          nextRooms.some((room, index) => room !== rooms[index]);
+        rooms = nextRooms;
+        roomListStatus = 'ready';
+        if (!rooms.includes(selectedRoom)) selectRoom(lobby);
+        if (changed && !roomPanel.hidden) renderRoomList();
+      } catch {
+        if (request !== roomListRequest) return;
+        roomListStatus = 'error';
+        if (!roomPanel.hidden) renderRoomList();
+      }
+    }
+
+    function validateNickname(name) {
+      if (!name) return 'Enter a nickname.';
+      if (Array.from(name).length > 32) return 'Nicknames can be up to 32 characters.';
+      return '';
+    }
+
+    function openWindow(room, nickname) {
+      const card = template.content.firstElementChild.cloneNode(true);
+      card.dataset.room = room;
+      card.dataset.nickname = nickname;
+      const nicknameField = card.querySelector('.nickname-field');
+      nicknameField.value = nickname;
+      nicknameField.addEventListener('change', () => {
+        const name = nicknameField.value.trim();
+        const error = validateNickname(name);
+        if (error) {
+          nicknameField.value = card.dataset.nickname;
+          toast(error + ' Your previous nickname has been restored.');
+          return;
+        }
+        card.dataset.nickname = name;
+        nicknameField.value = name;
+      });
+      card.querySelector('.room-title').textContent = room;
+      card.querySelector('.room-title').title = room;
+      if (source.readyState === EventSource.OPEN) {
+        card.querySelector('.room-subtitle').textContent = 'Online · Live';
+      }
+      card.querySelector('.close-btn').addEventListener('click', () => card.remove());
+      const field = card.querySelector('.text-field');
+      card.querySelector('.composer').addEventListener('submit', async event => {
+        event.preventDefault();
+        const text = field.value.trim();
+        if (!text) return;
+        field.value = '';
+        try {
+          const response = await fetch('/api/messages', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({from:card.dataset.nickname, room, text})});
+          if (!response.ok) throw new Error();
+        } catch { field.value = text; toast('Message failed to send. Please try again.'); }
+      });
+      windowsEl.append(card);
+      (roomMessages.get(room) || []).forEach(message => renderMessage(card, message));
+      loadRoom(room);
+      field.focus();
+    }
+
+    roomToggle.addEventListener('click', () => {
+      if (!roomPanel.hidden) {
+        closeRoomPicker(true);
+        return;
+      }
+      roomSearch.value = '';
+      roomPanel.hidden = false;
+      roomToggle.setAttribute('aria-expanded', 'true');
+      renderRoomList();
+      roomSearch.focus();
+      refreshRooms();
+    });
+    roomSearch.addEventListener('input', renderRoomList);
+    roomPicker.addEventListener('keydown', event => {
+      if (roomPanel.hidden || event.isComposing) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeRoomPicker(true);
+      } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        const options = Array.from(roomOptions.querySelectorAll('button'));
+        const index = options.indexOf(document.activeElement);
+        const next = event.key === 'ArrowDown' ? options[index + 1] : options[index - 1] || roomSearch;
+        if (next) {
+          event.preventDefault();
+          next.focus();
+        }
+      } else if (event.key === 'Enter' && event.target === roomSearch) {
+        event.preventDefault();
+        roomOptions.querySelector('button')?.click();
+      }
+    });
+    roomPicker.addEventListener('focusout', event => {
+      if (event.relatedTarget && !roomPicker.contains(event.relatedTarget)) closeRoomPicker();
+    });
+    document.addEventListener('pointerdown', event => {
+      if (!roomPicker.contains(event.target)) closeRoomPicker();
+    });
+    function showNicknameError(message) {
+      nicknameError.textContent = message;
+      nicknameError.hidden = !message;
+      nicknameInput.setAttribute('aria-invalid', String(Boolean(message)));
+    }
+
+    openWindowButton.addEventListener('click', () => {
+      windowForm.reset();
+      showNicknameError('');
+      windowRoom.textContent = selectedRoom;
+      windowDialog.showModal();
+    });
+    document.querySelector('#cancel-window').addEventListener('click', () => windowDialog.close());
+    nicknameInput.addEventListener('input', () => showNicknameError(''));
+    windowForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const nickname = nicknameInput.value.trim();
+      const error = validateNickname(nickname);
+      if (error) {
+        showNicknameError(error);
+        nicknameInput.focus();
+        return;
+      }
+      windowDialog.close();
+      openWindow(windowRoom.textContent, nickname);
+    });
+
+    function showRoomError(message) {
+      roomError.textContent = message;
+      roomError.hidden = !message;
+    }
+
+    addRoomButton.addEventListener('click', () => {
+      roomForm.reset();
+      showRoomError('');
+      roomDialog.showModal();
+    });
+    cancelRoomButton.addEventListener('click', () => roomDialog.close());
+    roomDialog.addEventListener('cancel', event => {
+      if (createRoomButton.disabled) event.preventDefault();
+    });
+    roomInput.addEventListener('input', () => showRoomError(''));
+    roomForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (createRoomButton.disabled) return;
+      const room = roomInput.value.trim();
+      if (!room || Array.from(room).length > 40) {
+        showRoomError(room ? 'Room names can be up to 40 characters.' : 'Enter a room name.');
+        roomInput.focus();
+        return;
+      }
+      showRoomError('');
+      roomInput.readOnly = true;
+      createRoomButton.disabled = true;
+      cancelRoomButton.disabled = true;
+      createRoomButton.textContent = 'Creating…';
+      try {
+        const response = await fetch('/api/rooms', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({room})});
+        if (!response.ok) throw new Error();
+        const created = await response.json();
+        if (!rooms.includes(created)) rooms.push(created);
+        selectRoom(created);
+        roomDialog.close();
+        openWindowButton.focus();
+        refreshRooms();
+      } catch {
+        showRoomError('Could not create the room. Please try again.');
+        roomInput.focus();
+      } finally {
+        roomInput.readOnly = false;
+        createRoomButton.disabled = false;
+        cancelRoomButton.disabled = false;
+        createRoomButton.textContent = 'Create Room';
+      }
+    });
+    connect();
+    refreshRooms();
+    setInterval(refreshRooms, 5000);
+  </script>
+</body>
+</html>
