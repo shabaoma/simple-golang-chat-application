@@ -7,12 +7,13 @@ import (
 	"io"
 	"net"
 	"strconv"
+	"sync"
 )
 
 type Connection struct {
 	Id      string
 	Conn    net.Conn
-	ConnMap *map[string]net.Conn
+	ConnMap *sync.Map
 }
 
 func (c Connection) Process() {
@@ -43,21 +44,24 @@ func (c Connection) Process() {
 			continue
 		}
 
-		redirect_conn := (*c.ConnMap)[m.To]
-		redirect_conn.Write(b)
+		if redirect_conn, ok := c.ConnMap.Load(m.To); ok {
+			redirect_conn.(net.Conn).Write(b)
+		}
 	}
 }
 
 func main() {
-	server, err := net.Listen("tcp", ":8080")
-	connection_map := make(map[string]net.Conn)
+	var connectionMap sync.Map
 	id := 0
 
-	fmt.Println("Start server")
+	go startWebServer()
+
+	server, err := net.Listen("tcp", ":8082")
 	if err != nil {
 		fmt.Println("Start server error: ", err)
 		return
 	}
+	fmt.Println("TCP server listening on :8082")
 	defer server.Close()
 
 	for {
@@ -70,8 +74,8 @@ func main() {
 
 		fmt.Printf("Assign id %v to %v\n", id, conn.RemoteAddr().String())
 		str_id := strconv.Itoa(id)
-		connection_map[str_id] = conn
-		connection := Connection{str_id, conn, &connection_map}
+		connectionMap.Store(str_id, conn)
+		connection := Connection{str_id, conn, &connectionMap}
 		id++
 		go connection.Process()
 	}
